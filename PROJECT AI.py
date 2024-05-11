@@ -10,6 +10,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
 import os
+import google.generativeai as genai
 
 # Load environment variables
 from dotenv import load_dotenv
@@ -19,6 +20,9 @@ load_dotenv()
 OPENWEATHERMAP_API_KEY = os.getenv("OPENWEATHERMAP_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GEMINI_SEARCH_URL = os.getenv("GEMINI_SEARCH_URL")
+
+genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+model = genai.GenerativeModel('gemini-pro')
 
 
 # Function to fetch weather data from OpenWeatherMap
@@ -58,11 +62,6 @@ def train_model(X, y):
     return model, accuracy
 
 
-# Function to predict weather hazard using trained model
-def predict_weather_hazard(model, X):
-    return model.predict(X)
-
-
 # Function to generate remarks by Gemini AI
 def generate_remarks(weather_description, humidity, pressure):
     remarks = ""
@@ -82,6 +81,15 @@ def generate_remarks(weather_description, humidity, pressure):
         remarks += "Low atmospheric pressure detected. "
     elif pressure > 1020:
         remarks += "High atmospheric pressure detected. "
+
+    city = requests.get("https://ipinfo.io").json()["city"]
+    # Generate additional remarks from Gemini AI
+    genai_remarks = model.generate_content(f"Give very short remarks on {weather_description} weather in {city} and what one should do in second person in paragraph in less than 15 words.")   
+    # Limit Gemini AI remarks to 20 words
+    genai_remarks_words = genai_remarks.text.split()
+    genai_remarks_limited = " ".join(genai_remarks_words[:20])
+
+    remarks += genai_remarks_limited
 
     return remarks.strip()
 
@@ -149,6 +157,8 @@ def generate_chatbot_panel_content():
     """
     return chatbot_panel_content
 
+def predict_weather_hazard(model, X):
+    return model.predict(X)
 
 # Main function
 def main():
@@ -171,6 +181,7 @@ def main():
     X = [[25, 70, 5, 1000], [20, 80, 3, 990]]  # Example features
     y = [0, 1]  # Example labels (0: No hazard, 1: Hazard)
     model, accuracy = train_model(X, y)
+
 
     # Predict weather hazard
     hazard_prediction = predict_weather_hazard(model, [[temperature, humidity, wind_speed, pressure]])[0]
