@@ -1,0 +1,22 @@
+
+    <div id="search-bar" style="position: fixed; top: 20px; left: 20px;">
+        <input type="text" id="city-input" placeholder="Enter city name">
+        <button onclick="fetchWeatherData()">Search</button>
+    </div>
+    <script>
+    // Function to fetch weather data for the entered city
+    function fetchWeatherData() {
+        var city = document.getElementById('city-input').value.trim();
+        if (city !== '') {
+            fetch('/weather?city=' + encodeURIComponent(city))
+            .then(response => response.json())
+            .then(data => {
+                // Process weather data and update map
+                // Example: Update map with new marker for the city
+                console.log('Weather Data:', data);
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    }
+    </script>
+    
