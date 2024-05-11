@@ -1,0 +1,47 @@
+
+    <div id="chatbot-panel" style="position: fixed; right: 20px; bottom: 20px; width: 300px; height: 400px; background-color: #f0f0f0; border: 1px solid #ccc; border-radius: 5px; overflow: hidden;">
+        <div id="chat-container" style="padding: 10px; max-height: 300px; overflow-y: auto;">
+            <div id="chat-messages"></div>
+            <input type="text" id="user-input" placeholder="Type your message..." style="width: calc(100% - 22px); margin-top: 10px; padding: 5px; border: 1px solid #ccc;">
+        </div>
+    </div>
+    <script>
+    var chatMessages = document.getElementById('chat-messages');
+    var userInput = document.getElementById('user-input');
+
+    // Function to add message to the chatbox
+    function addMessage(sender, message) {
+        var messageElement = document.createElement('div');
+        messageElement.innerHTML = '<strong>' + sender + ':</strong> ' + message;
+        chatMessages.appendChild(messageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Function to handle user input
+    function handleUserInput() {
+        var userInputText = userInput.value.trim();
+        if (userInputText !== '') {
+            addMessage('You', userInputText);
+            console.log('User Input:', userInputText); // Log user input
+            // Send user input to Gemini AI and display response
+            // Replace the API_KEY with your Gemini AI API key and modify the URL if necessary
+            fetch('https://www.gemini.com/api?query=' + encodeURIComponent(userInputText))
+            .then(response => response.json())
+            .then(data => {
+                var geminiResponse = data.response;
+                console.log('Gemini AI Response:', geminiResponse); // Log Gemini AI response
+                addMessage('Gemini AI', geminiResponse);
+            })
+            .catch(error => console.error('Error:', error));
+            userInput.value = '';
+        }
+    }
+
+    // Event listener for user input
+    userInput.addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            handleUserInput();
+        }
+    });
+</script>
+    
