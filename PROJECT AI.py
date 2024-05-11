@@ -153,7 +153,10 @@ def generate_chatbot_panel_content():
 # Main function
 def main():
     # Take user input for the city
-    city = input("Enter the city: ")
+    # city = input("Enter the city: ")
+    # fetch the current location using ipinfo site
+    response = requests.get("https://ipinfo.io")
+    city = response.json()["city"]
 
     # Fetch weather data for the entered city
     weather_data = fetch_weather_data(city)
