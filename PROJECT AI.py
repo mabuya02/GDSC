@@ -84,7 +84,7 @@ def generate_remarks(weather_description, humidity, pressure):
 
     city = requests.get("https://ipinfo.io").json()["city"]
     # Generate additional remarks from Gemini AI
-    genai_remarks = model.generate_content(f"Give very short remarks on {weather_description} weather in {city} and what one should do in second person in paragraph in less than 15 words.")   
+    genai_remarks = model.generate_content(f"Give very short remarks on {weather_description} weather in {city} and what one should do in second person in paragraph in less than 20.")
     # Limit Gemini AI remarks to 20 words
     genai_remarks_words = genai_remarks.text.split()
     genai_remarks_limited = " ".join(genai_remarks_words[:20])
@@ -157,8 +157,31 @@ def generate_chatbot_panel_content():
     """
     return chatbot_panel_content
 
+
+# Function to predict weather hazard using trained model
 def predict_weather_hazard(model, X):
     return model.predict(X)
+
+
+# Function to detect flood
+def detect_flood(weather_description):
+    return "flood" in weather_description.lower()
+
+
+# Function to detect high solar intensity
+def detect_high_solar_intensity(weather_description):
+    return "sun" in weather_description.lower()
+
+
+# Function to provide guidelines for natural extremities
+def provide_guidelines(weather_description):
+    if detect_flood(weather_description):
+        return "Stay indoors and avoid flooded areas. Prepare an emergency kit and stay informed."
+    elif detect_high_solar_intensity(weather_description):
+        return "Stay hydrated, seek shade, and wear sunscreen to protect against harmful UV rays."
+    else:
+        return "No specific guidelines available for the current weather condition."
+
 
 # Main function
 def main():
@@ -182,34 +205,20 @@ def main():
     y = [0, 1]  # Example labels (0: No hazard, 1: Hazard)
     model, accuracy = train_model(X, y)
 
-
     # Predict weather hazard
     hazard_prediction = predict_weather_hazard(model, [[temperature, humidity, wind_speed, pressure]])[0]
 
     # Generate remarks by Gemini AI
     remarks = generate_remarks(weather_description, humidity, pressure)
 
+    # Generate guidelines for natural extremities
+    guidelines = provide_guidelines(weather_description)
+
     # Generate HTML content for the chatbot panel
     chatbot_panel_content = generate_chatbot_panel_content()
 
     # Create a map
     map = folium.Map(location=[weather_data["coord"]["lat"], weather_data["coord"]["lon"]], zoom_start=10)
-
-    # Add wind layer
-    wind_url = "https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=8ee63116fa89d1502e75d1f92a7eee14"
-    folium.TileLayer(wind_url, attr="OpenWeatherMap Wind").add_to(map)
-
-    # Add rainfall layer
-    rainfall_url = "https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=8ee63116fa89d1502e75d1f92a7eee14"
-    folium.TileLayer(rainfall_url, attr="OpenWeatherMap Rainfall").add_to(map)
-
-    # Add humidity layer
-    humidity_url = "https://tile.openweathermap.org/map/humidity_new/{z}/{x}/{y}.png?appid=8ee63116fa89d1502e75d1f92a7eee14"
-    folium.TileLayer(humidity_url, attr="OpenWeatherMap Humidity").add_to(map)
-
-    # Add pressure contour layer
-    pressure_url = "https://tile.openweathermap.org/map/pressure_new/{z}/{x}/{y}.png?appid=8ee63116fa89d1502e75d1f92a7eee14"
-    folium.TileLayer(pressure_url, attr="OpenWeatherMap Pressure").add_to(map)
 
     # Add marker to the map with weather information and remarks
     popup_html = f"<b>{city} Weather</b><br>" \
@@ -218,7 +227,8 @@ def main():
                  f"<b>Humidity:</b> {humidity}%<br>" \
                  f"<b>Wind Speed:</b> {wind_speed} m/s<br>" \
                  f"<b>Atmospheric Pressure:</b> {pressure} hPa<br>" \
-                 f"<b>Remarks:</b> {remarks}"
+                 f"<b>Remarks:</b> {remarks}<br>" \
+                 f"<b>Guidelines:</b> {guidelines}"
     folium.Marker([weather_data["coord"]["lat"], weather_data["coord"]["lon"]],
                   popup=folium.Popup(popup_html, max_width=300)).add_to(map)
 
