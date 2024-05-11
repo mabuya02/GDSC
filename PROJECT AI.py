@@ -9,10 +9,16 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
+import os
+
+# Load environment variables
+from dotenv import load_dotenv
+load_dotenv()
+
 # Constants
-OPENWEATHERMAP_API_KEY = "8ee63116fa89d1502e75d1f92a7eee14"
-GEMINI_API_KEY = "AIzaSyCoKvV9ZRv9nLi6P5L_qLzxXrAjjNzOFNI"
-GEMINI_SEARCH_URL = "https://www.gemini.com/api?query="
+OPENWEATHERMAP_API_KEY = os.getenv("OPENWEATHERMAP_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GEMINI_SEARCH_URL = os.getenv("GEMINI_SEARCH_URL")
 
 
 # Function to fetch weather data from OpenWeatherMap
